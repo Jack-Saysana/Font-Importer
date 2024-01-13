@@ -30,6 +30,8 @@ Each glyph has the following format:
 
 `advance` (4 bytes): 4-byte float representing how far in the x direction the following glyph should be rendered after the current glyph, as a ratio of some arbitrary line height
 
+`id` (4 bytes): 4-byte integer representing the id of the character in the ascii table
+
 ## Rendering Process:
 The `vert_coords`, `tex_coords` and `indices` of each glyph can be used to generate a VBO (Vertex buffer object) and EBO (Element buffer object) to render each glpyh.
 
