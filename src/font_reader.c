@@ -11,18 +11,22 @@ int read_font(FILE *in_file) {
     return -1;
   }
 
+#ifdef DEBUG
   fprintf(stdout, "File id: %s\n", file_id);
   fprintf(stdout, "Format version: %d\n", format_version);
   fprintf(stdout, "=================== READING BLOCKS ===================\n");
+#endif
 
-  int block_type = 0;
-  int block_size = 0;
+  int8_t block_type = 0;
+  int32_t block_size = 0;
   size_t reading_blocks = fread(&block_type, sizeof(char), 1, in_file);
   while (reading_blocks) {
-    fread(&block_size, sizeof(int), 1, in_file);
+    fread(&block_size, sizeof(int32_t), 1, in_file);
 
+#ifdef DEBUG
     fprintf(stdout, "Block type: %d\n", block_type);
     fprintf(stdout, "Block size: %d\n", block_size);
+#endif
 
     if (block_type == 1) {
       read_block_1(in_file, block_size);
@@ -43,71 +47,79 @@ int read_font(FILE *in_file) {
 }
 
 void read_block_1(FILE *in_file, int block_size) {
-  fread(&b1, sizeof(char), B1_STD_SIZE, in_file);
+  fread(&info, sizeof(char), B1_STD_SIZE, in_file);
   int name_len = block_size - B1_STD_SIZE;
-  b1.font_name = malloc(sizeof(char) * name_len);
-  fread(b1.font_name, sizeof(char), name_len, in_file);
+  info.font_name = malloc(sizeof(char) * name_len);
+  fread(info.font_name, sizeof(char), name_len, in_file);
 
-  fprintf(stdout, "  Font size: %d\n", b1.font_size);
-  fprintf(stdout, "  bit_field: %x\n", b1.bit_field);
-  fprintf(stdout, "  Char set: %d\n", b1.char_set);
-  fprintf(stdout, "  stretch H: %d\n", b1.stretch_H);
-  fprintf(stdout, "  aa: %d\n", b1.aa);
-  fprintf(stdout, "  Padding up: %d\n", b1.padding_up);
-  fprintf(stdout, "  Padding right: %d\n", b1.padding_right);
-  fprintf(stdout, "  Padding down: %d\n", b1.padding_down);
-  fprintf(stdout, "  Padding left: %d\n", b1.padding_left);
-  fprintf(stdout, "  Spacing horiz: %d\n", b1.spacing_horiz);
-  fprintf(stdout, "  Spacing vert: %d\n", b1.spacing_vert);
-  fprintf(stdout, "  Font name: %s\n", b1.font_name);
+#ifdef DEBUG
+  fprintf(stdout, "  Font size: %d\n", info.font_size);
+  fprintf(stdout, "  bit_field: %x\n", info.bit_field);
+  fprintf(stdout, "  Char set: %d\n", info.char_set);
+  fprintf(stdout, "  stretch H: %d\n", info.stretch_H);
+  fprintf(stdout, "  aa: %d\n", info.aa);
+  fprintf(stdout, "  Padding up: %d\n", info.padding_up);
+  fprintf(stdout, "  Padding right: %d\n", info.padding_right);
+  fprintf(stdout, "  Padding down: %d\n", info.padding_down);
+  fprintf(stdout, "  Padding left: %d\n", info.padding_left);
+  fprintf(stdout, "  Spacing horiz: %d\n", info.spacing_horiz);
+  fprintf(stdout, "  Spacing vert: %d\n", info.spacing_vert);
+  fprintf(stdout, "  Font name: %s\n", info.font_name);
+#endif
 }
 
 void read_block_2(FILE *in_file, int block_size) {
-  fread(&b2, sizeof(char), block_size, in_file);
+  fread(&common, sizeof(char), block_size, in_file);
 
-  fprintf(stdout, "  Line height: %d\n", b2.line_height);
-  fprintf(stdout, "  Base: %d\n", b2.base);
-  fprintf(stdout, "  Scale w: %d\n", b2.scale_w);
-  fprintf(stdout, "  Scale h: %d\n", b2.scale_h);
-  fprintf(stdout, "  Pages: %d\n", b2.pages);
-  fprintf(stdout, "  Bit field: %x\n", b2.bit_field);
-  fprintf(stdout, "  Alpha: %x\n", b2.alpha_chnl);
-  fprintf(stdout, "  Red: %x\n", b2.red_chnl);
-  fprintf(stdout, "  Green: %x\n", b2.green_chnl);
-  fprintf(stdout, "  Blue: %x\n", b2.blue_chnl);
+#ifdef DEBUG
+  fprintf(stdout, "  Line height: %d\n", common.line_height);
+  fprintf(stdout, "  Base: %d\n", common.base);
+  fprintf(stdout, "  Scale w: %d\n", common.scale_w);
+  fprintf(stdout, "  Scale h: %d\n", common.scale_h);
+  fprintf(stdout, "  Pages: %d\n", common.pages);
+  fprintf(stdout, "  Bit field: %x\n", common.bit_field);
+  fprintf(stdout, "  Alpha: %x\n", common.alpha_chnl);
+  fprintf(stdout, "  Red: %x\n", common.red_chnl);
+  fprintf(stdout, "  Green: %x\n", common.green_chnl);
+  fprintf(stdout, "  Blue: %x\n", common.blue_chnl);
+#endif
 }
 
 void read_block_3(FILE *in_file, int block_size) {
-  int page_name_len = block_size / b2.pages;
-  b3.page_names = malloc(sizeof(char *) * b2.pages);
-  for (int i = 0; i < b2.pages; i++) {
-    b3.page_names[i] = malloc(sizeof(char) * page_name_len);
-    fread(b3.page_names[i], sizeof(char), block_size, in_file);
+  int page_name_len = block_size / common.pages;
+  pages.page_names = malloc(sizeof(char *) * common.pages);
+  for (int i = 0; i < common.pages; i++) {
+    pages.page_names[i] = malloc(sizeof(char) * page_name_len);
+    fread(pages.page_names[i], sizeof(char), block_size, in_file);
 
-    fprintf(stdout, "  page name: %s\n", b3.page_names[i]);
+#ifdef DEBUG
+    fprintf(stdout, "  page name: %s\n", pages.page_names[i]);
+#endif
   }
 }
 
 void read_block_4(FILE *in_file, int block_size) {
-  int num_chars = block_size / sizeof(BLOCK_4);
-  b4 = malloc(sizeof(BLOCK_4) * num_chars);
-  fread(b4, sizeof(BLOCK_4), num_chars, in_file);
+  num_chars = block_size / sizeof(BLOCK_4);
+  chars = malloc(sizeof(BLOCK_4) * num_chars);
+  fread(chars, sizeof(BLOCK_4), num_chars, in_file);
 
+#ifdef DEBUG
   for (int i = 0; i < num_chars; i++) {
-    fprintf(stdout, "  id: %d (%c)\n", b4[i].id, b4[i].id);
-    fprintf(stdout, "  x: %d\n", b4[i].x);
-    fprintf(stdout, "  y: %d\n", b4[i].y);
-    fprintf(stdout, "  width: %d\n", b4[i].width);
-    fprintf(stdout, "  height: %d\n", b4[i].height);
-    fprintf(stdout, "  x offset: %d\n", b4[i].x_offset);
-    fprintf(stdout, "  y offset: %d\n", b4[i].y_offset);
-    fprintf(stdout, "  x advance: %d\n", b4[i].x_advance);
-    fprintf(stdout, "  page: %d\n", b4[i].page);
-    fprintf(stdout, "  chnl: %d\n", b4[i].chnl);
+    fprintf(stdout, "  id: %d (%c)\n", chars[i].id, chars[i].id);
+    fprintf(stdout, "  x: %d\n", chars[i].x);
+    fprintf(stdout, "  y: %d\n", chars[i].y);
+    fprintf(stdout, "  width: %d\n", chars[i].width);
+    fprintf(stdout, "  height: %d\n", chars[i].height);
+    fprintf(stdout, "  x offset: %d\n", chars[i].x_offset);
+    fprintf(stdout, "  y offset: %d\n", chars[i].y_offset);
+    fprintf(stdout, "  x advance: %d\n", chars[i].x_advance);
+    fprintf(stdout, "  page: %d\n", chars[i].page);
+    fprintf(stdout, "  chnl: %d\n", chars[i].chnl);
     fprintf(stdout, "\n");
   }
+#endif
 }
 
 void read_block_5(FILE *in_file, int block_size) {
-  fread(&b5, sizeof(BLOCK_5), 1, in_file);
+  fread(&kerning_pairs, sizeof(BLOCK_5), 1, in_file);
 }

@@ -13,7 +13,13 @@ int main(int argc, char *argv[]) {
   }
 
   int status = read_font(input_file);
-
   fclose(input_file);
+
+  if (status) {
+    return 1;
+  }
+
+  status = output_characters();
+
   return status;
 }
