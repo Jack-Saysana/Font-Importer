@@ -17,6 +17,9 @@ typedef struct character {
   height
   */
   float advance;
+  float x_offset;
+  float y_offset;
+  int id;
 } CHARACTER;
 
 extern BLOCK_2 common;
